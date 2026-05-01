@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AGB-to-Demand Workflow — Interactive Walkthrough | BA Surveillance APM</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+  /* === Saab brand palette === */
+  :root {
+    --saab-blue: #00508C;
+    --saab-gold: #FAB900;
+    --saab-gold-bright: #FFC000;
+    --saab-red: #E61419;
+    --saab-dark: #373737;
+    --saab-darker: #2A2A2A;
+    --saab-card: #4A4A4A;
+    --saab-card-alt: #404040;
+    --saab-cream: #E1E1DC;
+    --saab-border: #5A5A5A;
+    --saab-green: #5BBA47;
+    --text-light: #FFFFFF;
+    --text-muted: #B8B8B8;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--saab-dark);
+    color: var(--text-light);
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* === Top header bar === */
+  .header {
+    background: var(--saab-darker);
+    border-bottom: 2px solid var(--saab-gold);
+    padding: 14px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-title { font-size: 16px; font-weight: bold; color: var(--saab-gold); letter-spacing: 1px; }
+  .header-subtitle { font-size: 13px; color: var(--text-muted); font-style: italic; }
+  .saab-mark {
+    background: var(--saab-gold);
+    color: var(--saab-darker);
+    font-weight: 900;
+    padding: 4px 12px;
+    letter-spacing: 4px;
+    font-size: 14px;
+    border-radius: 2px;
+  }
+
+  /* === Page layout === */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 30px 60px;
+  }
+
+  .intro {
+    margin-bottom: 30px;
+    padding: 24px;
+    background: var(--saab-card-alt);
+    border-left: 4px solid var(--saab-gold);
+  }
+  .intro h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    color: var(--saab-gold);
+    font-weight: bold;
+  }
+  .intro p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 16px;
+    max-width: 900px;
+  }
+
+  /* === Controls === */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--saab-darker);
+    border: 1px solid var(--saab-border);
+    flex-wrap: wrap;
+  }
+  .btn {
+    background: var(--saab-blue);
+    color: var(--text-light);
+    border: 1px solid var(--saab-gold);
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-family: inherit;
+    text-transform: uppercase;
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--saab-gold);
+    color: var(--saab-darker);
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--saab-gold);
+    color: var(--saab-darker);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--saab-gold-bright);
+  }
+  .progress-text {
+    color: var(--saab-gold);
+    font-size: 14px;
+    font-weight: bold;
+    margin-left: auto;
+    font-family: 'Consolas', monospace;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--saab-card);
+    margin: 0 8px;
+    position: relative;
+    min-width: 200px;
+  }
+  .progress-fill {
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%;
+    background: var(--saab-gold);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* === Main workflow grid === */
+  .workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .lane {
+    background: var(--saab-darker);
+    border: 1px solid var(--saab-border);
+    min-height: 600px;
+    position: relative;
+  }
+  .lane-header {
+    padding: 14px 12px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--text-light);
+    border-bottom: 2px solid var(--saab-gold);
+  }
+  .lane-bo .lane-header { background: var(--saab-blue); }
+  .lane-ea .lane-header { background: #5A6680; }
+  .lane-agb .lane-header { background: #7A4A8C; }
+  .lane-it .lane-header { background: var(--saab-gold); color: var(--saab-darker); }
+
+  .lane-body {
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 540px;
+  }
+
+  /* === Step cards === */
+  .step {
+    background: var(--saab-card);
+    border: 1px solid var(--saab-border);
+    border-left: 3px solid var(--saab-blue);
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.4;
+    transform: translateY(8px);
+    position: relative;
+  }
+  .step.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .step.active {
+    background: var(--saab-blue);
+    border-color: var(--saab-gold);
+    border-left-color: var(--saab-gold);
+    border-left-width: 4px;
+    box-shadow: 0 0 16px rgba(250, 185, 0, 0.4);
+  }
+  .step.completed {
+    border-left-color: var(--saab-green);
+  }
+  .step.auto {
+    background: var(--saab-card);
+    border-left-color: var(--saab-gold);
+  }
+  .step.auto.active {
+    background: var(--saab-gold);
+    color: var(--saab-darker);
+  }
+  .step.auto.active .step-num {
+    background: var(--saab-darker);
+    color: var(--saab-gold);
+  }
+  .step.auto.active .step-meta { color: var(--saab-darker); }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--saab-gold);
+    color: var(--saab-darker);
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step.completed .step-num {
+    background: var(--saab-green);
+    color: white;
+  }
+  .step-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--text-light);
+  }
+  .step.auto.active .step-title { color: var(--saab-darker); }
+  .step-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* === Detail panel (right side, slides in) === */
+  .detail-panel {
+    background: var(--saab-darker);
+    border: 1px solid var(--saab-gold);
+    padding: 0;
+    margin-bottom: 24px;
+    overflow: hidden;
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 0;
+  }
+  .detail-panel.expanded {
+    max-height: 2000px;
+  }
+  .detail-header {
+    background: var(--saab-blue);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--saab-gold);
+  }
+  .detail-title {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--saab-gold);
+    margin: 0;
+  }
+  .detail-owner {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .detail-body {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .detail-section h3 {
+    font-size: 13px;
+    color: var(--saab-gold);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0 0 12px;
+    border-bottom: 1px solid var(--saab-border);
+    padding-bottom: 6px;
+  }
+  .subtask-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .subtask {
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: var(--saab-card);
+    border-left: 3px solid var(--saab-gold);
+    font-size: 13px;
+    line-height: 1.4;
+    opacity: 0;
+    transform: translateX(-12px);
+    animation: slideInLeft 0.4s forwards;
+  }
+  .subtask:nth-child(1) { animation-delay: 0.1s; }
+  .subtask:nth-child(2) { animation-delay: 0.2s; }
+  .subtask:nth-child(3) { animation-delay: 0.3s; }
+  .subtask:nth-child(4) { animation-delay: 0.4s; }
+  .subtask:nth-child(5) { animation-delay: 0.5s; }
+  .subtask:nth-child(6) { animation-delay: 0.6s; }
+  .subtask:nth-child(7) { animation-delay: 0.7s; }
+  .subtask:nth-child(8) { animation-delay: 0.8s; }
+
+  .subtask-num {
+    color: var(--saab-gold);
+    font-weight: bold;
+    font-family: 'Consolas', monospace;
+    margin-right: 8px;
+  }
+
+  @keyframes slideInLeft {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* === Records panel === */
+  .record {
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background: var(--saab-card);
+    border-left: 3px solid var(--saab-blue);
+    font-size: 12px;
+    opacity: 0;
+    animation: slideInLeft 0.4s forwards;
+  }
+  .record:nth-child(1) { animation-delay: 0.2s; }
+  .record:nth-child(2) { animation-delay: 0.4s; }
+  .record:nth-child(3) { animation-delay: 0.6s; }
+  .record:nth-child(4) { animation-delay: 0.8s; }
+  .record:nth-child(5) { animation-delay: 1.0s; }
+  .record:nth-child(6) { animation-delay: 1.2s; }
+
+  .record-id {
+    color: var(--saab-gold);
+    font-family: 'Consolas', monospace;
+    font-weight: bold;
+  }
+  .record-table {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-family: 'Consolas', monospace;
+  }
+  .record-state {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--saab-blue);
+    color: var(--text-light);
+    font-size: 10px;
+    font-weight: bold;
+    margin-top: 4px;
+    font-family: 'Consolas', monospace;
+  }
+  .record-state.created { background: var(--saab-green); color: white; }
+  .record-state.terminal { background: var(--saab-gold); color: var(--saab-darker); }
+
+  /* === Footer === */
+  .footer {
+    background: var(--saab-darker);
+    padding: 16px 30px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--saab-border);
+  }
+
+  /* === Pulsing arrow on active step === */
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .step.active {
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* === Responsive === */
+  @media (max-width: 1200px) {
+    .workflow-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 700px) {
+    .workflow-grid { grid-template-columns: 1fr; }
+    .detail-body { grid-template-columns: 1fr; }
+    .controls { flex-direction: column; align-items: stretch; }
+    .progress-text { margin-left: 0; }
+  }
+
+  /* Empty placeholder for unfilled lane positions */
+  .step-spacer {
+    height: 0;
+    pointer-events: none;
+  }
+
+  /* === HARD FIX: desktop single-screen layout with internal bottom scroll === */
+  @media (min-width: 1000px) {
+    html,
+    body {
+      height: 100vh !important;
+      max-height: 100vh !important;
+      overflow: hidden !important;
+    }
+
+    body {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    .header {
+      flex: 0 0 48px !important;
+      min-height: 48px !important;
+      max-height: 48px !important;
+      padding: 6px 18px !important;
+    }
+
+    .header-title {
+      font-size: 13px !important;
+      line-height: 1.1 !important;
+    }
+
+    .header-subtitle {
+      font-size: 10px !important;
+      line-height: 1.1 !important;
+    }
+
+    .saab-mark {
+      padding: 2px 8px !important;
+      font-size: 11px !important;
+      letter-spacing: 3px !important;
+    }
+
+    .container {
+      flex: 1 1 auto !important;
+      height: calc(100vh - 72px) !important;
+      max-height: calc(100vh - 72px) !important;
+      max-width: 1540px !important;
+      width: 100% !important;
+      padding: 8px 18px !important;
+      display: grid !important;
+      grid-template-rows: 58px 40px minmax(0, 1fr) 260px !important;
+      gap: 7px !important;
+      overflow: hidden !important;
+    }
+
+    .intro {
+      height: 58px !important;
+      margin: 0 !important;
+      padding: 8px 12px !important;
+      overflow: hidden !important;
+    }
+
+    .intro h1 {
+      font-size: 18px !important;
+      margin: 0 0 2px !important;
+      line-height: 1.05 !important;
+    }
+
+    .intro p {
+      font-size: 11px !important;
+      line-height: 1.2 !important;
+      max-width: 1200px !important;
+    }
+
+    .controls {
+      height: 40px !important;
+      margin: 0 !important;
+      padding: 6px 9px !important;
+      gap: 7px !important;
+      overflow: hidden !important;
+    }
+
+    .btn {
+      padding: 5px 10px !important;
+      font-size: 10px !important;
+      letter-spacing: .5px !important;
+    }
+
+    .progress-bar {
+      height: 4px !important;
+      min-width: 180px !important;
+    }
+
+    .progress-text {
+      font-size: 11px !important;
+    }
+
+    .workflow-grid {
+      height: 100% !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      gap: 7px !important;
+      overflow: hidden !important;
+    }
+
+    .lane {
+      height: 100% !important;
+      min-height: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+    }
+
+    .lane-header {
+      flex: 0 0 34px !important;
+      min-height: 34px !important;
+      padding: 5px 8px !important;
+      font-size: 9px !important;
+      letter-spacing: 1px !important;
+      line-height: 1.15 !important;
+    }
+
+    .lane-body {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      padding: 6px 7px !important;
+      gap: 4px !important;
+      overflow: hidden !important;
+    }
+
+    .step {
+      min-height: 34px !important;
+      max-height: 42px !important;
+      padding: 5px 6px !important;
+      transform: none !important;
+    }
+
+    .step-header {
+      gap: 5px !important;
+      margin-bottom: 1px !important;
+    }
+
+    .step-num {
+      width: 18px !important;
+      height: 18px !important;
+      min-width: 18px !important;
+      font-size: 10px !important;
+    }
+
+    .step-title {
+      font-size: 9.5px !important;
+      line-height: 1.08 !important;
+    }
+
+    .step-meta {
+      font-size: 7.5px !important;
+      margin-top: 1px !important;
+      line-height: 1.05 !important;
+    }
+
+    .step-spacer {
+      height: 34px !important;
+      min-height: 34px !important;
+      max-height: 34px !important;
+    }
+
+    .detail-panel {
+      height: 260px !important;
+      min-height: 260px !important;
+      max-height: 260px !important;
+      margin: 0 !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    .detail-panel.expanded {
+      height: 260px !important;
+      min-height: 260px !important;
+      max-height: 260px !important;
+      overflow: hidden !important;
+    }
+
+    .detail-header {
+      flex: 0 0 44px !important;
+      min-height: 44px !important;
+      padding: 7px 12px !important;
+    }
+
+    .detail-title {
+      font-size: 15px !important;
+      line-height: 1.1 !important;
+      margin: 0 !important;
+    }
+
+    .detail-owner {
+      font-size: 9px !important;
+    }
+
+    .detail-body {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      height: 216px !important;
+      padding: 8px 12px !important;
+      gap: 10px !important;
+      grid-template-columns: 1.25fr .75fr !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      scrollbar-gutter: stable !important;
+      scrollbar-width: auto !important;
+      scrollbar-color: var(--saab-gold) var(--saab-card) !important;
+    }
+
+    .detail-body::-webkit-scrollbar {
+      width: 12px !important;
+      display: block !important;
+    }
+
+    .detail-body::-webkit-scrollbar-track {
+      background: var(--saab-card) !important;
+    }
+
+    .detail-body::-webkit-scrollbar-thumb {
+      background: var(--saab-gold) !important;
+      border-radius: 6px !important;
+    }
+
+    .detail-section h3 {
+      font-size: 10px !important;
+      margin: 0 0 5px !important;
+      padding-bottom: 4px !important;
+      letter-spacing: 1px !important;
+    }
+
+    .subtask {
+      padding: 4px 7px !important;
+      margin-bottom: 3px !important;
+      font-size: 10px !important;
+      line-height: 1.17 !important;
+    }
+
+    .record {
+      padding: 4px 7px !important;
+      margin-bottom: 4px !important;
+      font-size: 10px !important;
+      line-height: 1.15 !important;
+    }
+
+    .record-table,
+    .record-state {
+      font-size: 8px !important;
+    }
+
+    .footer {
+      flex: 0 0 24px !important;
+      min-height: 24px !important;
+      max-height: 24px !important;
+      padding: 5px 16px !important;
+      font-size: 8px !important;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="saab-mark">SAAB</div>
+    <div>
+      <div class="header-title">AGB-TO-DEMAND WORKFLOW</div>
+      <div class="header-subtitle">Interactive walkthrough — BA Surveillance APM</div>
+    </div>
+  </div>
+  <div style="font-size: 10px; color: var(--text-muted); text-align: right;">
+    COMPANY RESTRICTED | NOT EXPORT CONTROLLED<br>
+    Rajkamal Shaik — Surveillance Enterprise Architect
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="intro">
+    <h1>End-to-end walkthrough — 10 steps in 4 lanes</h1>
+    <p>Click any step to see its sub-tasks and the ServiceNow records created. Use Play to auto-advance through the full workflow, or step through manually with Next/Previous.</p>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btn-prev">◄ Previous</button>
+    <button class="btn btn-primary" id="btn-play">▶ Play full sequence</button>
+    <button class="btn" id="btn-next">Next ►</button>
+    <button class="btn" id="btn-reset">⟲ Reset</button>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="progress-text" id="progress-text">Step 0 / 10</div>
+  </div>
+
+  <div class="workflow-grid">
+    <div class="lane lane-bo">
+      <div class="lane-header">BUSINESS<br>OWNER</div>
+      <div class="lane-body" id="lane-bo"></div>
+    </div>
+    <div class="lane lane-ea">
+      <div class="lane-header">ENTERPRISE<br>ARCHITECT</div>
+      <div class="lane-body" id="lane-ea"></div>
+    </div>
+    <div class="lane lane-agb">
+      <div class="lane-header">AGB</div>
+      <div class="lane-body" id="lane-agb"></div>
+    </div>
+    <div class="lane lane-it">
+      <div class="lane-header">LOCAL IT</div>
+      <div class="lane-body" id="lane-it"></div>
+    </div>
+  </div>
+
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-header">
+      <div>
+        <h2 class="detail-title" id="detail-title">Click a step to begin</h2>
+        <div class="detail-owner" id="detail-owner"></div>
+      </div>
+      <div class="detail-owner" id="detail-sla"></div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-section">
+        <h3>Sub-tasks</h3>
+        <ul class="subtask-list" id="subtask-list"></ul>
+      </div>
+      <div class="detail-section">
+        <h3>ServiceNow records</h3>
+        <div id="record-list"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div>BA Surveillance — Application Portfolio Management — APM-AGB Walkthrough v1.0</div>
+  <div>Copyright Saab AB. All rights reserved.</div>
+</footer>
+
+<script>
+// === Workflow data ===
+const steps = [
+  {
+    num: 1, lane: 0, lane_name: "Business Owner",
+    title: "Submit AGB Request",
+    short: "Submit AGB Request",
+    sla: "Day 0",
+    subtasks: [
+      "Confirm Business Owner role assigned in ServiceNow",
+      "Open Service Portal → 'Submit Business Application Request (AGB)'",
+      "Complete the multi-step record producer (~15 min)",
+      "Provide application name, description, vendor, hosting model",
+      "Indicate Personal Data and Export-Controlled Data flags",
+      "Set Business Criticality Tier (1-4)",
+      "Map to Primary Business Capability (Level 2)",
+      "Submit and receive acknowledgement notification"
+    ],
+    records: [
+      { id: "AGB0001234", table: "x_agb_request", state: "Submitted", color: "created" }
+    ]
+  },
+  {
+    num: 2, lane: 1, lane_name: "Enterprise Architect",
+    title: "Validate & Trigger Decision Logs",
+    short: "Validate & Trigger DLs",
+    sla: "1-2 days",
+    subtasks: [
+      "Open AGB Workspace → EA Validation Queue",
+      "Review request against APM Data Standard (18 mandatory fields)",
+      "Confirm uniqueness of application name in APM",
+      "Verify Capability mapping uses v1.0 model",
+      "Evaluate indicators (Personal Data, Export Control, etc.)",
+      "Determine which Decision Logs to trigger",
+      "Click 'Trigger Decision Logs' — Flow 2 fires",
+      "Notifications sent to each assigned reviewer"
+    ],
+    records: [
+      { id: "AGB0001234", table: "x_agb_request", state: "In Review", color: "" },
+      { id: "DL0001234.01-06", table: "x_agb_decision_log (×6)", state: "Pending", color: "created" }
+    ]
+  },
+  {
+    num: 3, lane: 2, lane_name: "AGB Voting Members",
+    title: "Decision Logs",
+    short: "Decision Logs (Sec, Proc, Privacy, ExpCtrl, IM, Legal)",
+    sla: "5-10 days",
+    subtasks: [
+      "Security: Sensitive Data, Internet Facing, Encryption, Auth, Accreditation Required",
+      "Procurement: New Vendor, Vendor Approved, Risk Assessment, Licensing Model, SLA",
+      "Legal: Contract Required, IP Ownership, Regulatory Impact, Liability, Cross-border",
+      "Export Control: XC Data, Cross-border Access, Foreign National Access, License",
+      "Data Privacy: Personal Data, DPIA, Consent, Cross-border Transfer, Retention",
+      "Information Management: Classification, Owner, Steward, Retention, Master Data",
+      "Each reviewer records: Approved / Conditional / Rejected / N/A",
+      "All required logs must reach Completed state for AGB scheduling"
+    ],
+    records: [
+      { id: "DL0001234.01", table: "Information Management", state: "Completed", color: "created" },
+      { id: "DL0001234.02", table: "Security", state: "Completed (Conditional)", color: "created" },
+      { id: "DL0001234.03", table: "Procurement", state: "Completed (Conditional)", color: "created" },
+      { id: "DL0001234.04", table: "Legal", state: "Completed (Conditional)", color: "created" },
+      { id: "DL0001234.05", table: "Export Control", state: "Completed (Conditional)", color: "created" },
+      { id: "DL0001234.06", table: "Data Privacy", state: "Completed (Conditional)", color: "created" }
+    ]
+  },
+  {
+    num: 4, lane: 2, lane_name: "AGB Chair + Voting Members",
+    title: "AGB Architecture Decision",
+    short: "AGB Architecture Decision (vote)",
+    sla: "Bi-weekly meeting",
+    subtasks: [
+      "AGB Chair adds item to next standing meeting agenda",
+      "Quorum confirmed (5 voting members minimum)",
+      "Chair walks AGB through context and Decision Logs",
+      "Each member casts vote: Approve / Approve with Conditions / Reject / Defer",
+      "Conditions consolidated from all Decision Logs into Architecture Decision",
+      "Tie-breaker: Chair has casting vote",
+      "Architecture Decision record created with full voting capture",
+      "Out-of-cycle approval supported for time-critical / trivial cases"
+    ],
+    records: [
+      { id: "AGB0001234", table: "x_agb_request", state: "AGB Decision", color: "" },
+      { id: "AD0001234", table: "x_agb_architecture_decision", state: "Issued (Approved with Conditions)", color: "created" }
+    ]
+  },
+  {
+    num: 5, lane: 1, lane_name: "Enterprise Architect",
+    title: "Create Demand for Local IT",
+    short: "Create Demand for Local IT",
+    sla: "1 day",
+    subtasks: [
+      "EA opens Architecture Decision and clicks 'Create Demand'",
+      "Flow 5 fires automatically",
+      "Demand record created in sn_dmn_demand",
+      "All AGB context inherited: financials, classification, criticality, capabilities",
+      "Conditions copied across as mandatory follow-throughs",
+      "Routing rule assigns to correct Local IT group (country + sub-BU)",
+      "Notifications sent to Local IT lead",
+      "AGB Request transitions to Done — Demand Created (NOT Closed yet)"
+    ],
+    records: [
+      { id: "DMD0005678", table: "sn_dmn_demand", state: "Submitted", color: "created" },
+      { id: "AGB0001234", table: "x_agb_request", state: "Done — Demand Created", color: "" }
+    ]
+  },
+  {
+    num: 6, lane: 3, lane_name: "Local IT Lead",
+    title: "Plan & Promote",
+    short: "Plan & promote to PRJ/CHG/Story",
+    sla: "Within 48 hours",
+    subtasks: [
+      "Local IT lead opens incoming Demand in Local IT Workspace",
+      "Read AGB context: decisions, conditions, all 6 Decision Logs",
+      "Qualification: completeness, resources, dependencies",
+      "Contact EA if anything unclear before proceeding",
+      "Select execution vehicle: Project / Normal Change / Standard Change / Story / Epic",
+      "For complex (multi-env, > €100k, > 3 months): promote to PPM Project",
+      "For medium: Normal Change with linked sub-tasks",
+      "For trivial: pre-approved Standard Change template"
+    ],
+    records: [
+      { id: "DMD0005678", table: "sn_dmn_demand", state: "In Planning → Approved", color: "" },
+      { id: "PRJ0001234", table: "pm_project", state: "Initiation", color: "created" }
+    ]
+  },
+  {
+    num: 7, lane: 3, lane_name: "Local IT + Group IT",
+    title: "Raise Group IT Catalog Requests",
+    short: "Raise Group IT catalog requests",
+    sla: "1-2 weeks",
+    subtasks: [
+      "Application Service: AEW_ERP_SE_DEV, _TEST, _UAT, _PROD (×4)",
+      "Service Offering: AEW_ERP_SE (×1)",
+      "Server provisioning: app, db, web servers per environment (×12+)",
+      "Database provisioning: 4 environments (×4)",
+      "Storage allocation, firewall changes, network/VLAN, backup config",
+      "Vendor onboarding (if new vendor) via Procurement workflow",
+      "Software License procurement via SAM team",
+      "All requests linked to parent Demand and Project"
+    ],
+    records: [
+      { id: "RITM0001-15", table: "sc_req_item (×15)", state: "Various — open / in fulfilment", color: "created" },
+      { id: "AEW_ERP_SE_PROD", table: "sn_apm_application_service", state: "Provisioning", color: "created" }
+    ]
+  },
+  {
+    num: 8, lane: 3, lane_name: "Local IT + Business Owner",
+    title: "Execute & UAT",
+    short: "Execute & UAT signoff",
+    sla: "Months (per project plan)",
+    subtasks: [
+      "Vendor RFP (if new vendor) → contract negotiation → signature",
+      "Infrastructure provisioned per environment",
+      "Application installed and configured per Decision Log conditions",
+      "Integrations built (PLM, IDM, financials, etc.)",
+      "Data migration scripts developed and tested",
+      "Test environments validated; UAT environment prepared",
+      "Business Owner conducts UAT with named participants",
+      "UAT signoff captured as attachment on Demand"
+    ],
+    records: [
+      { id: "AEW_ERP", table: "sn_apm_business_application", state: "Pipeline → Approved", color: "" },
+      { id: "Multiple CIs", table: "cmdb_ci_*", state: "Provisioned + In Service", color: "created" },
+      { id: "UAT_Signoff", table: "Attachment on DMD0005678", state: "Captured", color: "created" }
+    ]
+  },
+  {
+    num: 9, lane: 3, lane_name: "Local IT Lead",
+    title: "Close Demand (Validation Gate)",
+    short: "Close Demand (validation gate)",
+    sla: "Same day as completion",
+    subtasks: [
+      "All linked sc_req_item records: Closed Complete ✓",
+      "Linked pm_project (if exists): Closed ✓",
+      "All linked change_request records: Closed (success state) ✓",
+      "UAT signoff attachment present on Demand ✓",
+      "APM Business Application: Operational ✓",
+      "All AGB conditions satisfied (or documented as deferred) ✓",
+      "Local IT Lead clicks 'Close Demand'",
+      "Validation gate enforced by Flow 7 — no manual override"
+    ],
+    records: [
+      { id: "DMD0005678", table: "sn_dmn_demand", state: "Closed Complete", color: "terminal" },
+      { id: "AEW_ERP", table: "sn_apm_business_application", state: "Operational", color: "created" }
+    ]
+  },
+  {
+    num: 10, lane: 1, lane_name: "Automatic — Flow 8",
+    title: "AGB Request Closed Complete",
+    short: "AGB Request Closed Complete",
+    sla: "Instant",
+    auto: true,
+    subtasks: [
+      "Flow 8 triggered automatically by Demand state = Closed Complete",
+      "AGB Request state transitions: Done → Closed Complete",
+      "Cycle time fields calculated and populated",
+      "End-to-end cycle time captured (e.g., 569 days for ERP)",
+      "Performance Analytics dashboards refresh",
+      "Closure notification sent to Business Owner",
+      "AGB Chair and voting members CC'd for awareness",
+      "THE CRITICAL RULE: this can NEVER fire before Step 9 fires"
+    ],
+    records: [
+      { id: "AGB0001234", table: "x_agb_request", state: "Closed Complete", color: "terminal" },
+      { id: "Cycle Time KPI", table: "Performance Analytics", state: "569 days end-to-end", color: "terminal" }
+    ]
+  }
+];
+
+// === Layout: place steps in their lane with vertical sequencing ===
+// Lane 0 = BO, 1 = EA, 2 = AGB, 3 = IT
+// Each step occupies one row globally; empty cells inserted in other lanes for that row
+function renderWorkflow() {
+  const lanes = [
+    document.getElementById('lane-bo'),
+    document.getElementById('lane-ea'),
+    document.getElementById('lane-agb'),
+    document.getElementById('lane-it')
+  ];
+  // For each step (in order), create the step element in its lane and spacers in others
+  steps.forEach((step, idx) => {
+    for (let l = 0; l < 4; l++) {
+      if (l === step.lane) {
+        const el = document.createElement('div');
+        el.className = 'step' + (step.auto ? ' auto' : '');
+        el.dataset.idx = idx;
+        el.innerHTML = `
+          <div class="step-header">
+            <div class="step-num">${step.num}</div>
+            <div>
+              <div class="step-title">${step.short}</div>
+            </div>
+          </div>
+          <div class="step-meta">${step.lane_name}</div>
+        `;
+        el.addEventListener('click', () => goToStep(idx));
+        lanes[l].appendChild(el);
+      } else {
+        // Spacer to keep vertical alignment
+        const sp = document.createElement('div');
+        sp.className = 'step-spacer';
+        sp.style.height = '34px';  // fixed desktop compact spacer height
+        lanes[l].appendChild(sp);
+      }
+    }
+  });
+}
+
+// === State ===
+let currentStep = -1;
+let playing = false;
+let playTimer = null;
+
+function updateProgress() {
+  const pct = currentStep === -1 ? 0 : ((currentStep + 1) / steps.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent =
+    `Step ${currentStep === -1 ? 0 : currentStep + 1} / ${steps.length}`;
+
+  document.getElementById('btn-prev').disabled = currentStep <= 0;
+  document.getElementById('btn-next').disabled = currentStep >= steps.length - 1;
+}
+
+function goToStep(idx) {
+  if (idx < 0 || idx >= steps.length) return;
+
+  // Update step visuals: visibility (steps up to current visible), active = current, completed = before current
+  document.querySelectorAll('.step').forEach(el => {
+    const i = parseInt(el.dataset.idx);
+    el.classList.remove('active', 'completed');
+    if (i <= idx) el.classList.add('visible');
+    if (i < idx) el.classList.add('completed');
+    if (i === idx) el.classList.add('active');
+  });
+
+  currentStep = idx;
+  renderDetail(steps[idx]);
+  updateProgress();
+
+  // Scroll the active step into view in the lane
+  const activeEl = document.querySelector('.step.active');
+  if (activeEl) {
+    activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function renderDetail(step) {
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('expanded');
+
+  document.getElementById('detail-title').textContent = `Step ${step.num} — ${step.title}`;
+  document.getElementById('detail-owner').textContent = step.lane_name;
+  document.getElementById('detail-sla').textContent = `SLA: ${step.sla}`;
+
+  // Subtasks (re-trigger animation by replacing element)
+  const subList = document.getElementById('subtask-list');
+  subList.innerHTML = '';
+  step.subtasks.forEach((task, i) => {
+    const li = document.createElement('li');
+    li.className = 'subtask';
+    li.innerHTML = `<span class="subtask-num">${(i + 1).toString().padStart(2, '0')}</span>${task}`;
+    subList.appendChild(li);
+  });
+
+  // Ensure bottom detail area scrolls internally
+  const detailBody = document.querySelector('.detail-body');
+  if (detailBody) {
+    detailBody.style.overflowY = 'auto';
+    detailBody.style.overflowX = 'hidden';
+  }
+
+  // Records
+  const recList = document.getElementById('record-list');
+  recList.innerHTML = '';
+  step.records.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'record';
+    div.innerHTML = `
+      <div class="record-id">${r.id}</div>
+      <div class="record-table">${r.table}</div>
+      <div class="record-state ${r.color}">${r.state}</div>
+    `;
+    recList.appendChild(div);
+  });
+}
+
+function reset() {
+  currentStep = -1;
+  document.querySelectorAll('.step').forEach(el => {
+    el.classList.remove('active', 'completed', 'visible');
+  });
+  document.getElementById('detail-panel').classList.remove('expanded');
+  document.getElementById('detail-title').textContent = 'Click a step to begin';
+  document.getElementById('detail-owner').textContent = '';
+  document.getElementById('detail-sla').textContent = '';
+  document.getElementById('subtask-list').innerHTML = '';
+  document.getElementById('record-list').innerHTML = '';
+  updateProgress();
+}
+
+function play() {
+  if (playing) {
+    stopPlay();
+    return;
+  }
+  playing = true;
+  document.getElementById('btn-play').textContent = '■ Stop';
+
+  // If at end, restart
+  if (currentStep >= steps.length - 1) currentStep = -1;
+
+  function advance() {
+    if (!playing) return;
+    if (currentStep >= steps.length - 1) {
+      stopPlay();
+      return;
+    }
+    goToStep(currentStep + 1);
+    playTimer = setTimeout(advance, 4500); // 4.5 seconds per step
+  }
+  advance();
+}
+
+function stopPlay() {
+  playing = false;
+  document.getElementById('btn-play').textContent = '▶ Play full sequence';
+  if (playTimer) {
+    clearTimeout(playTimer);
+    playTimer = null;
+  }
+}
+
+// === Init ===
+document.addEventListener('DOMContentLoaded', () => {
+  renderWorkflow();
+  updateProgress();
+
+  document.getElementById('btn-prev').addEventListener('click', () => {
+    stopPlay();
+    if (currentStep > 0) goToStep(currentStep - 1);
+  });
+  document.getElementById('btn-next').addEventListener('click', () => {
+    stopPlay();
+    if (currentStep < steps.length - 1) goToStep(currentStep + 1);
+  });
+  document.getElementById('btn-play').addEventListener('click', play);
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    stopPlay();
+    reset();
+  });
+
+  // Keyboard support
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') document.getElementById('btn-next').click();
+    if (e.key === 'ArrowLeft') document.getElementById('btn-prev').click();
+    if (e.key === ' ') {
+      e.preventDefault();
+      document.getElementById('btn-play').click();
+    }
+    if (e.key === 'Escape') document.getElementById('btn-reset').click();
+  });
+});
+</script>
+
+</body>
+</html>
